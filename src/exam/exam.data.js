@@ -1,13 +1,13 @@
 var q = require('q'),
     http = require('q-io/http'),
-    assessmentValidator = require('./exam.validator');
+    examValidator = require('./exam.validator');
 
-var assessments = {};
+var exams = {};
 
 var DATA_URL = 'https://dl.dropboxusercontent.com/u/1278945/Static%20Data/code-exams/';
 
-assessments.get = function (assessmentId) {
-    var url = DATA_URL + assessmentId;
+exams.get = function (examId) {
+    var url = DATA_URL + examId;
     var options = {
         url: url,
         method: 'GET'
@@ -16,13 +16,13 @@ assessments.get = function (assessmentId) {
     http.request(options)
         .then(function (response) {
             return response.body.read().then(function (body) {
-                var assessment = JSON.parse(body);
-                if (assessmentValidator.validate(assessment)) {
-                    deferred.resolve(assessment);
+                var exam = JSON.parse(body);
+                if (examValidator.validate(exam)) {
+                    deferred.resolve(exam);
                 } else {
                     deferred.reject({
-                        message: 'Assessment failed validation : ' + assessment.name,
-                        assessment: assessment
+                        message: 'Exam failed validation : ' + exam.name,
+                        assessment: exam
                     });
                 }
             });
@@ -36,4 +36,4 @@ assessments.get = function (assessmentId) {
     return deferred.promise;
 };
 
-module.exports = assessments;
+module.exports = exams;

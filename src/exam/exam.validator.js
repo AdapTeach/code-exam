@@ -1,23 +1,23 @@
 var validator = require('validator'),
     iz = require('iz');
 
-var assessmentValidator = {};
+var examValidator = {};
 
-var validate = function (assessment) {
+var validate = function (exam) {
     var toReturn = true;
     var results = [
-        validator.isLength(assessment.id, 2),
-        validator.isLength(assessment.title, 2),
-        validator.isLength(assessment.instructions, 10),
-        iz(assessment.providedCompilationUnits).anArray().required().valid,
-        iz(assessment.compilationUnitsToSubmit).anArray().minLength(1).valid,
-        iz(assessment.tests).anArray().minLength(1).valid,
-        iz(assessment.tips).anArray().required().valid,
-        iz(assessment.guides).anArray().required().valid
+        //validator.isLength(exam.id, 2),
+        //validator.isLength(exam.title, 2),
+        //validator.isLength(exam.instructions, 10),
+        //iz(exam.providedCompilationUnits).anArray().required().valid,
+        //iz(exam.compilationUnitsToSubmit).anArray().minLength(1).valid,
+        //iz(exam.tests).anArray().minLength(1).valid,
+        //iz(exam.tips).anArray().required().valid,
+        //iz(exam.guides).anArray().required().valid
     ];
     // TODO Validate each individual element in arrays
-    // validator.contains(assessment.startCode, 'public class ' + assessment.className + ' {'),
-    // validator.isLength(assessment.className, 2)
+    // validator.contains(exam.startCode, 'public class ' + exam.className + ' {'),
+    // validator.isLength(exam.className, 2)
     results.forEach(function (result) {
         if (!result) {
             //console.log(results);
@@ -27,16 +27,16 @@ var validate = function (assessment) {
     return toReturn;
 };
 
-assessmentValidator.validate = validate;
+examValidator.validate = validate;
 
-assessmentValidator.validateAll = function (assessments) {
+examValidator.validateAll = function (exams) {
     var result = true;
-    assessments.forEach(function (assessment) {
-        if (!validate(assessment)) {
+    exams.forEach(function (exam) {
+        if (!validate(exam)) {
             result = false;
         }
     });
     return result;
 };
 
-module.exports = assessmentValidator;
+module.exports = examValidator;
