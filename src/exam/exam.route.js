@@ -1,13 +1,11 @@
-var examData = require('./exam.data'),
-    sessions = require('./exam.sessions'),
+var sessions = require('./exam.sessions'),
     assesser = require('./assesser'),
-    http = require('q-io/http');
+    authUser = require('../auth/auth.users');
 
 var routes = {};
 
 function checkAuthenticated(request, response) {
-    var authenticated = true; // TODO some magic !!!
-    if (!authenticated) {
+    if (!authUser.isLoggedIn()) {
         response.status(401).send('Authentication required');
     }
 }
