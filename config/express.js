@@ -62,7 +62,7 @@ module.exports = function () {
         console.error(err.stack);
 
         // Error page
-        res.json('500', {
+        res.status(500).json({
             error: err.stack
         });
     });

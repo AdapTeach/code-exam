@@ -39,59 +39,40 @@ routes.publish = function (router) {
 
     router.post('/session/:sessionId/:assessmentId', function (request, response) {
         checkAuthenticated(request, response);
-        assesser.assess(request.params.assessmentId, request.body).then(function (result) {
-            response.json(result);
-        });
-    });
-
-    router.post('/exam/:examId', function (request, response) {
-        var authentified = true;
-        if (authentified) {
-            var examId = request.params.examId;
-            examData.get(examId)
-                .then(function (exam) {
-                    response.json(exam);
-                })
-                .catch(function (error) {
-                    response.status(500).send(error.message);
-                });
-        } else {
-            response.status(401).send('You must be authentified to access an exam');
-        }
-        var student = {
-            id: 'Bob'
-        };
-    });
-
-    router.post('/exam/:examId/:assessmentId', function (request, response) {
-        var examId = request.params.examId;
+        var submission = request.body;
+        var sessionId = request.params.sessionId;
         var assessmentId = request.params.assessmentId;
-        examData.get(examId)
-            .then(function (assessment) {
-                var compilationUnits = request.body.compilationUnits;
-                var options = {
-                    //url: 'http://localhost:5020/v1/',
-                    url: 'http://54.171.154.216:5020/v1/',
-                    method: 'POST',
-                    body: [
-                        JSON.stringify({
-                            assessment: assessment,
-                            compilationUnits: compilationUnits
-                        })
-                    ]
-                };
-                return http.request(http.normalizeRequest(options))
-                    .then(function (submissionResponse) {
-                        return submissionResponse.body.read().then(function (body) {
-                            response
-                                .status(submissionResponse.status)
-                                .json(JSON.parse(body));
-                        });
-                    });
+        var studentId = 'bob'; // TODO magic !
+        assesser.assess(assessmentId, submission)
+            .then(function (submissionResult) {
+                return sessions.saveSubmissionResult(sessionId, studentId, assessmentId, submissionResult);
+            })
+            .then(function () {
+                response.send({
+                    savedSubmission: submission
+                });
+            })
+            .catch(function (error) {
+                response.status(500).send(error.message);
+            });
+    });
+
+    router.get('/session/:sessionId/:assessmentId', function (request, response) {
+        checkAuthenticated(request, response);
+        var sessionId = request.params.sessionId;
+        var assessmentId = request.params.assessmentId;
+        var studentId = 'bob'; // TODO magic !
+        sessions.getLastSubmission(sessionId, studentId, assessmentId)
+            .then(function (lastSubmission) {
+                if (lastSubmission === undefined) {
+                    response.status(404).send('Student has not submitted a solution for this assessment yet');
+                } else {
+                    response.json(lastSubmission);
+                }
             })
             .catch(function (error) {
                 console.log(error);
-                response.status(500).send(error.message);
+                response.status(500).send(error);
             });
     });
 
