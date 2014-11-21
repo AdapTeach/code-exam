@@ -18,7 +18,8 @@
     "glob": "*",
     "compression": "*",
     "mongoose": "*",
-    "cors": "*"
+    "cors": "*",
+    "mongoose-q": "*"
   },
   "devDependencies": {
     "gulp": "*",

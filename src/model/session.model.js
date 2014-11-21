@@ -1,5 +1,5 @@
 var mongoose = require('mongoose-q')(),
-    Schema = mongoose.Schema
+    Schema = mongoose.Schema;
 
 module.exports = mongoose.model('Submission',
     new Schema({
