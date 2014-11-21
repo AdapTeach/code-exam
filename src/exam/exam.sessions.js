@@ -1,4 +1,5 @@
-var examData = require('./exam.data');
+var q = require('q'),
+    examData = require('./exam.data');
 
 var sessions = {};
 
@@ -36,7 +37,7 @@ function checkExists(sessionId) {
 
 function checkNotClosed(sessionId) {
     if (sessions.isClosed(sessionId))
-        throw Error('Session is already closed, can\'t change state');
+        throw Error('Session is already closed, no more modification will be accepted');
 }
 
 sessions.isRunning = function (sessionId) {
@@ -60,15 +61,26 @@ sessions.registerStudent = function (sessionId, studentId) {
     checkExists(sessionId);
     checkNotClosed(sessionId);
     if (data[sessionId][studentId] !== undefined)
-        throw  Error('Student has already been registered for this session');
+        throw  Error('A student has already been registered for this session with id : ' + studentId);
     data[sessionId][studentId] = {id: studentId};
 };
 
-sessions.saveResult = function (sessionId, studentId, assessmentId, result) {
+sessions.saveSubmissionResult = function (sessionId, studentId, assessmentId, submissionResult) {
+    checkExists(sessionId);
+    checkNotClosed(sessionId);
+    if (data[sessionId][studentId] === undefined)
+        throw Error('No student has been registered for this session with id : ' + studentId);
+    data[sessionId][studentId][assessmentId] = submissionResult;
+};
+
+sessions.getLastSubmission = function (sessionId, studentId, assessmentId) {
+    var deferred = q.defer();
     checkExists(sessionId);
     if (data[sessionId][studentId] === undefined)
-        throw Error('No student has been registered for this session');
-    data[sessionId][studentId][assessmentId] = result;
+        deferred.reject(Error('No student has been registered for this session with id : ' + studentId));
+    deferred.resolve(data[sessionId][studentId][assessmentId]);
+    return deferred.promise;
 };
+
 
 module.exports = sessions;

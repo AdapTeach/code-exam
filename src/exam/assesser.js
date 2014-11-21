@@ -9,7 +9,10 @@ assesser.assess = function (assessmentId, submission) {
         method: 'POST',
         body: [
             JSON.stringify(submission)
-        ]
+        ],
+        headers: {
+            'Content-Type': 'application/json'
+        }
     };
     return http.request(options)
         .then(function (submissionResponse) {
