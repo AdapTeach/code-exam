@@ -16,7 +16,9 @@
     "iz": "*",
     "lodash": "*",
     "glob": "*",
-    "compression": "*"
+    "compression": "*",
+    "mongoose": "*",
+    "cors": "*"
   },
   "devDependencies": {
     "gulp": "*",
