@@ -1,5 +1,5 @@
 var authVerifier = require('./auth.verifier'),
-    authUser = require('./auth.users'),
+    User = require('../model/user.model'),
     ensureAuthenticated = require('../auth/auth.middleware').ensureAuthenticated;
 
 var routes = {};
@@ -9,12 +9,16 @@ routes.publish = function (router) {
     router.post('/login', function (request, response) {
         authVerifier.verify(request.body.assertion)
             .then(function (verificationResult) {
-                console.log(verificationResult);
                 if (verificationResult.status === 'okay') {
-                    authUser.login();
-                    response.send('OK');
+                    var email = verificationResult.email;
+                    User.authenticate(email)
+                        .then(function (authData) {
+                            response.json(authData);
+                        })
+                        .catch(function (error) {
+                            response.status(401).json({message: error});
+                        });
                 } else {
-                    authUser.logout();
                     response.status(401).send(verificationResult.status);
                 }
             })

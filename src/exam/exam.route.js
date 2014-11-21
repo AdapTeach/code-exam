@@ -1,6 +1,5 @@
 var sessions = require('./exam.sessions'),
     assesser = require('./assesser'),
-    authUser = require('../auth/auth.users'),
     ensureAuthenticated = require('../auth/auth.middleware').ensureAuthenticated;
 
 var routes = {};
@@ -51,6 +50,7 @@ routes.publish = function (router) {
         var sessionId = request.params.sessionId;
         var assessmentId = request.params.assessmentId;
         var student = request.user;
+        console.log(student);
         sessions.getLastSubmission(sessionId, student.id, assessmentId)
             .then(function (lastSubmission) {
                 if (lastSubmission === undefined) {

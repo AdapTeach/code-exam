@@ -1,8 +1,9 @@
 var mongoose = require('mongoose-q')(),
     Schema = mongoose.Schema,
-    config = require('../config/config'),
+    config = require('../../config/config'),
     jwt = require('jwt-simple'),
-    moment = require('moment');
+    moment = require('moment'),
+    Q = require('q');
 
 var UserSchema = new Schema({
     email: {
@@ -23,6 +24,7 @@ var UserSchema = new Schema({
     }
 });
 
+
 UserSchema.methods.createJwtToken = function () {
     var payload = {
         user: this,
@@ -32,4 +34,36 @@ UserSchema.methods.createJwtToken = function () {
     return jwt.encode(payload, config.TOKEN_SECRET);
 };
 
-module.exports = mongoose.model('User', UserSchema);
+UserSchema.statics.authenticate = function (email) {
+    var deferred = Q.defer();
+
+    UserModel
+        .findOne({email: email})
+        .execQ()
+        .then(function (user) {
+            if (user) {
+                var authData = {
+                    user: user,
+                    token: user.createJwtToken()
+                };
+                deferred.resolve(authData);
+            } else {
+                new UserModel({email: email})
+                    .saveQ()
+                    .then(function (savedUser) {
+                        deferred.resolve({
+                            user: savedUser,
+                            token: savedUser.createJwtToken()
+                        });
+                    }).fail(function (error) {
+                        deferred.reject(error);
+                    });
+            }
+        });
+
+    return deferred.promise;
+};
+
+var UserModel = mongoose.model('User', UserSchema);
+
+module.exports = UserModel;

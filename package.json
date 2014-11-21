@@ -19,7 +19,9 @@
     "compression": "*",
     "mongoose": "*",
     "cors": "*",
-    "mongoose-q": "*"
+    "mongoose-q": "*",
+    "jwt-simple": "*",
+    "moment": "*"
   },
   "devDependencies": {
     "gulp": "*",
