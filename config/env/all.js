@@ -2,6 +2,7 @@ module.exports = {
     app: {
         title: 'Code Assesser',
         description: '',
-        keywords: ''
+        keywords: '',
+        tokenSecret : 'mySecret'
     }
 };
