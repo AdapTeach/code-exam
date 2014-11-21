@@ -16,7 +16,9 @@
     "iz": "*",
     "lodash": "*",
     "glob": "*",
-    "compression": "*"
+    "compression": "*",
+    "jwt-simple": "*",
+    "moment": "*"
   },
   "devDependencies": {
     "gulp": "*",
