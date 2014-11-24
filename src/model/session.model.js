@@ -4,10 +4,8 @@ var mongoose = require('mongoose-q')(require('mongoose')),
 var sessionSchema = new Schema({
     name: {type: String, required: true},
     assessments: {type: [String], required: true},
-    students: {
-        type: [Schema.ObjectId],
-        ref: 'User'
-    }
+    students: {type: [Schema.ObjectId], ref: 'User'},
+    started: {type: Boolean, required: true, default: false}
 });
 
 var Session = mongoose.model('Session', sessionSchema);

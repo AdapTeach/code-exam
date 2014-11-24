@@ -18,8 +18,7 @@ routes.publish = function (router) {
             .then(function saveSession(exam) {
                 var session = new Session({name: sessionName, assessments: exam.assessments, students: []});
                 return session.saveQ().then(function (savedSession) {
-                    console.log('Session created');
-                    console.log(savedSession);
+                    console.log('Session created : ' + savedSession.id);
                     response.json({id: savedSession.id});
                 });
             })
@@ -53,13 +52,27 @@ routes.publish = function (router) {
             });
     });
 
+    router.post('/session/:sessionId/start', ensureAuthenticated, function (request, response) {
+        var sessionId = request.params.sessionId;
+        Session
+            .findByIdQ(sessionId)
+            .then(function (session) {
+                if (session.started) {
+                    response.send('Session has already started');
+                } else {
+                    session.started = true;
+                    session.saveQ().then(function (savedSession) {
+                        console.log('Session started : ' + savedSession.id);
+                        response.send('OK');
+                    });
+                }
+            })
+            .catch(function (error) {
+                console.log(error);
+                response.status(500).send(error.message);
+            });
+    });
 
-    //
-    //router.post('/session/:sessionId/start', ensureAuthenticated, function (request, response) {
-    //    var sessionId = request.params.sessionId;
-    //    sessions.start(sessionId);
-    //    response.send('OK');
-    //});
     //
     //router.post('/session/:sessionId/:assessmentId', ensureAuthenticated, function (request, response) {
     //    var submission = request.body;
