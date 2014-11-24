@@ -59,7 +59,9 @@ routes.publish = function (router) {
         Session
             .findByIdQ(sessionId)
             .then(function (session) {
-                if (session.started) {
+                if (!session) {
+                    HttpError.throw(404, 'No session found for ID : ' + sessionId);
+                } else if (session.started) {
                     response.send('Session has already started');
                 } else {
                     session.started = true;

@@ -8,7 +8,9 @@ HttpError.throw = function (statusCode, message) {
 
 HttpError.handle = function (response) {
     return function (error) {
-        if (error.status) {
+        if (error.name === 'CastError') {
+            response.status(400);
+        } else if (error.status) {
             response.status(error.status);
         } else {
             response.status(500);
