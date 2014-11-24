@@ -1,11 +1,10 @@
-var mongoose = require('mongoose-q')(),
+var mongoose = require('mongoose-q')(require('mongoose')),
     Schema = mongoose.Schema,
     config = require('../../config/config'),
     jwt = require('jwt-simple'),
-    moment = require('moment'),
-    Q = require('q');
+    moment = require('moment');
 
-var UserSchema = new Schema({
+var userSchema = new Schema({
     email: {
         type: String,
         required: 'you should provide an email',
@@ -24,8 +23,7 @@ var UserSchema = new Schema({
     }
 });
 
-
-UserSchema.methods.createJwtToken = function () {
+userSchema.methods.createJwtToken = function () {
     var payload = {
         user: this,
         iat: moment().valueOf(),
@@ -34,36 +32,30 @@ UserSchema.methods.createJwtToken = function () {
     return jwt.encode(payload, config.TOKEN_SECRET);
 };
 
-UserSchema.statics.authenticate = function (email) {
-    var deferred = Q.defer();
-
-    UserModel
-        .findOne({email: email})
-        .execQ()
-        .then(function (user) {
-            if (user) {
-                var authData = {
-                    user: user,
-                    token: user.createJwtToken()
-                };
-                deferred.resolve(authData);
-            } else {
-                new UserModel({email: email})
-                    .saveQ()
-                    .then(function (savedUser) {
-                        deferred.resolve({
-                            user: savedUser,
-                            token: savedUser.createJwtToken()
-                        });
-                    }).fail(function (error) {
-                        deferred.reject(error);
-                    });
-            }
-        });
-
-    return deferred.promise;
+userSchema.methods.authData = function () {
+    return {
+        user: this,
+        token: this.createJwtToken()
+    };
 };
 
-var UserModel = mongoose.model('User', UserSchema);
+userSchema.statics.authenticate = function (email) {
+    return User.findByEmail(email).then(function (user) {
+        user.createJwtToken();
+        if (user) {
+            return user.authData();
+        } else { // no existing user, create a new one and return it
+            new User({email: email}).saveQ().then(function (savedUser) {
+                return savedUser.authData();
+            });
+        }
+    });
+};
 
-module.exports = UserModel;
+userSchema.statics.findByEmail = function (email) {
+    return User.findOne({email: email}).execQ();
+};
+
+var User = mongoose.model('User', userSchema);
+
+module.exports = User;

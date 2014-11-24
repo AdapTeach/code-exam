@@ -17,7 +17,7 @@
     "lodash": "*",
     "glob": "*",
     "compression": "*",
-    "mongoose": "*",
+    "mongoose": "3.8.*",
     "cors": "*",
     "mongoose-q": "*",
     "jwt-simple": "*",

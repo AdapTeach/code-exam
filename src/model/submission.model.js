@@ -1,4 +1,4 @@
-var mongoose = require('mongoose-q')(),
+var mongoose = require('mongoose-q')(require('mongoose')),
     Schema = mongoose.Schema;
 
 module.exports = mongoose.model('Submission',
