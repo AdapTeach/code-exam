@@ -30,8 +30,11 @@ var submissionSchema = new Schema({
     }
 });
 
-submissionSchema.statics.findLatest = function (studentId) {
-    return Submission.findOneQ({studentId: studentId}, null, {sort: {creationDate: -1}});
+submissionSchema.statics.findLatest = function (studentId, sessionId, assessmentId) {
+    var query = {studentId: studentId};
+    if (sessionId) query.sessionId = sessionId;
+    if (assessmentId) query.assessmentId = assessmentId;
+    return Submission.findOneQ(query, null, {sort: {creationDate: -1}});
 };
 
 var Submission = mongoose.model('Submission', submissionSchema);

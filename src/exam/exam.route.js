@@ -7,7 +7,7 @@ var Session = require('../model/session.model'),
     examData = require('./exam.data'),
     assesser = require('./assesser'),
     ensureAuthenticated = require('../auth/auth.middleware').ensureAuthenticated,
-    HttpError = require('./HttpError');
+    HttpError = require('../error/HttpError');
 
 var routes = {};
 
@@ -29,35 +29,30 @@ routes.publish = function (router) {
                 console.log('Session created : ' + savedSession.id);
                 response.json({id: savedSession.id});
             })
-            .catch(function (error) {
-                console.log(error);
-                response.status(500).send(error.message);
-            });
+            .catch(HttpError.handle(response));
     });
 
-    router.post('/session/:sessionId/registerStudent', ensureAuthenticated, function (request, response) {
-        var studentId = request.user._id;
-        var sessionId = request.params.sessionId;
-        Session
-            .findByIdQ(sessionId)
-            .then(function (session) {
-                var registeredStudentIds = _.map(session.students, function (studentObjectId) {
-                    return studentObjectId.toString();
-                });
-                if (_.contains(registeredStudentIds, studentId)) {
-                    response.send('Student already registered');
-                } else { // Add student to session
-                    session.students.push(studentId);
-                    return session.saveQ().then(function () {
-                        response.send('OK');
-                    });
-                }
-            })
-            .catch(function (error) {
-                console.log(error);
-                response.status(500).send(error.message);
-            });
-    });
+    // TODO Make sure submitting students are registered for a session
+    //router.post('/session/:sessionId/registerStudent', ensureAuthenticated, function (request, response) {
+    //    var studentId = request.user._id;
+    //    var sessionId = request.params.sessionId;
+    //    Session
+    //        .findByIdQ(sessionId)
+    //        .then(function (session) {
+    //            var registeredStudentIds = _.map(session.students, function (studentObjectId) {
+    //                return studentObjectId.toString();
+    //            });
+    //            if (_.contains(registeredStudentIds, studentId)) {
+    //                response.send('Student already registered');
+    //            } else { // Add student to session
+    //                session.students.push(studentId);
+    //                return session.saveQ().then(function () {
+    //                    response.send('OK');
+    //                });
+    //            }
+    //        })
+    //.catch(HttpError.handle(response));
+    //});
 
     router.post('/session/:sessionId/start', ensureAuthenticated, function (request, response) {
         var sessionId = request.params.sessionId;
@@ -74,10 +69,7 @@ routes.publish = function (router) {
                     });
                 }
             })
-            .catch(function (error) {
-                console.log(error);
-                response.status(500).send(error.message);
-            });
+            .catch(HttpError.handle(response));
     });
 
     router.post('/session/:sessionId/:assessmentId', ensureAuthenticated, function (request, response) {
@@ -88,6 +80,9 @@ routes.publish = function (router) {
         Submission
             .findLatest(studentId)
             .then(function checkTimeIntervalBetweenSubmissions(latestSubmission) {
+                if (!latestSubmission) {
+                    return;
+                }
                 var canSubmitAgain = moment(latestSubmission.creationDate).add(1, 'minute');
                 if (canSubmitAgain.isAfter(Date.now())) {
                     HttpError.throw(403, 'You have to wait for a minute until you can submit again');
@@ -102,7 +97,7 @@ routes.publish = function (router) {
                 if (session.started) {
                     return assesser.assess(assessmentId, submission);
                 } else {
-                    response.status(403).send('The sessions has not started yet');
+                    HttpError.throw(403, 'The sessions has not started yet');
                 }
             })
             .then(function saveSubmissionResult(submissionResult) {
@@ -119,35 +114,22 @@ routes.publish = function (router) {
                     compilationUnits: savedSubmission.compilationUnits
                 });
             })
-            .catch(function (error) {
-                if (error.status) {
-                    response.status(error.status);
-                } else {
-                    response.status(500);
-                    console.log(error);
-                }
-                response.send(error.message);
-            });
+            .catch(HttpError.handle(response));
     });
 
-    //router.get('/session/:sessionId/:assessmentId', ensureAuthenticated, function (request, response) {
-    //    var sessionId = request.params.sessionId;
-    //    var assessmentId = request.params.assessmentId;
-    //    var student = request.user;
-    //    console.log(student);
-    //    sessions.getLastSubmission(sessionId, student.id, assessmentId)
-    //        .then(function (lastSubmission) {
-    //            if (lastSubmission === undefined) {
-    //                response.status(404).send('Student has not submitted a solution for this assessment yet');
-    //            } else {
-    //                response.json(lastSubmission);
-    //            }
-    //        })
-    //        .catch(function (error) {
-    //            console.log(error);
-    //            response.status(500).send(error);
-    //        });
-    //});
+    router.get('/session/:sessionId/:assessmentId', ensureAuthenticated, function (request, response) {
+        var sessionId = request.params.sessionId;
+        var assessmentId = request.params.assessmentId;
+        var studentId = request.user._id;
+        Submission
+            .findLatest(studentId, sessionId, assessmentId)
+            .then(function sendResponse(latestSubmission) {
+                response.json({
+                    compilationUnits: latestSubmission.compilationUnits
+                });
+            })
+            .catch(HttpError.handle(response));
+    });
 
 };
 
