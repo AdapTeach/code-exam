@@ -19,11 +19,15 @@ routes.publish = function (router) {
         examData
             .get(examId)
             .then(function saveSession(exam) {
-                var session = new Session({name: sessionName, assessments: exam.assessments, students: []});
-                return session.saveQ().then(function (savedSession) {
-                    console.log('Session created : ' + savedSession.id);
-                    response.json({id: savedSession.id});
-                });
+                return new Session({
+                    name: sessionName,
+                    assessments: exam.assessments,
+                    students: []
+                }).saveQ();
+            })
+            .then(function sendResponse(savedSession) {
+                console.log('Session created : ' + savedSession.id);
+                response.json({id: savedSession.id});
             })
             .catch(function (error) {
                 console.log(error);
