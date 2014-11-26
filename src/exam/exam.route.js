@@ -1,11 +1,12 @@
 var _ = require('lodash'),
-    moment = require('moment');
+    moment = require('moment'),
+    Q = require('q');
 
 var Session = require('../model/session.model'),
     User = require('../model/user.model'),
     Submission = require('../model/submission.model'),
     examData = require('./exam.data'),
-    assesser = require('./assesser'),
+    Assessments = require('./Assessments'),
     ensureAuthenticated = require('../auth/auth.middleware').ensureAuthenticated,
     HttpError = require('../error/HttpError');
 
@@ -97,7 +98,7 @@ routes.publish = function (router) {
             })
             .then(function getAssessmentResult(session) {
                 if (session.started) {
-                    return assesser.assess(assessmentId, submission);
+                    return Assessments.assess(assessmentId, submission);
                 } else {
                     HttpError.throw(403, 'The sessions has not started yet');
                 }
@@ -120,19 +121,27 @@ routes.publish = function (router) {
     });
 
     router.get('/session/:sessionId/:assessmentId', ensureAuthenticated, function (request, response) {
-        var sessionId = request.params.sessionId;
-        var assessmentId = request.params.assessmentId;
-        var studentId = request.user._id;
-        Submission
-            .findLatest(studentId, sessionId, assessmentId)
-            .then(function sendResponse(latestSubmission) {
-                response.json({
-                    compilationUnits: latestSubmission.compilationUnits
-                });
-            })
-            .catch(HttpError.handle(response));
-    });
+            var sessionId = request.params.sessionId;
+            var assessmentId = request.params.assessmentId;
+            var studentId = request.user._id;
+            Q.all([
+                Assessments.get(assessmentId),
+                Submission.findLatest(studentId, sessionId, assessmentId)
+            ])
+                .then(function sendResponse(results) {
+                    var assessment = results[0];
+                    var latestSubmission = results[1];
+                    response.json({
+                        assessment: assessment,
+                        latestSubmission: latestSubmission
+                    });
+                })
+                .catch(HttpError.handle(response));
+        }
+    )
+    ;
 
-};
+}
+;
 
 module.exports = routes;
