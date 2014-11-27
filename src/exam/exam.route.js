@@ -100,8 +100,14 @@ routes.publish = function (router) {
                 if (session.started) {
                     return Assessments.assess(assessmentId, submission);
                 } else {
-                    HttpError.throw(403, 'The sessions has not started yet');
+                    HttpError.throw(403, 'The session has not started yet');
                 }
+            })
+            .then(function checkSubmittedCodeCompilesWithoutErrors(submissionResult) {
+                if (submissionResult.compilationErrors.length > 0) {
+                    HttpError.throw(400, 'Compilation Errors ! Submission was not saved');
+                }
+                return submissionResult;
             })
             .then(function saveSubmissionResult(submissionResult) {
                 return new Submission({
