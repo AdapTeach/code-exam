@@ -16,7 +16,7 @@ var validate = function (exam) {
         //iz(exam.guides).anArray().required().valid
     ];
     // TODO Validate each individual element in arrays
-    // validator.contains(exam.startCode, 'public class ' + exam.className + ' {'),
+    // validator.contains(exam.code, 'public class ' + exam.className + ' {'),
     // validator.isLength(exam.className, 2)
     results.forEach(function (result) {
         if (!result) {
