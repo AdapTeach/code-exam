@@ -16,7 +16,7 @@ HttpError.handle = function (response) {
             response.status(500);
             console.log(error);
         }
-        response.send(error.message);
+        response.send({message: error.message});
     };
 };
 
