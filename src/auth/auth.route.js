@@ -1,27 +1,28 @@
 var authVerifier = require('./auth.verifier'),
     User = require('../model/user.model'),
-    ensureAuthenticated = require('../auth/auth.middleware').ensureAuthenticated;
+    ensureAuthenticated = require('../auth/auth.middleware').ensureAuthenticated,
+    HttpError = require('../error/HttpError');
 
 var routes = {};
 
 routes.publish = function (router) {
 
     router.post('/login', function (request, response) {
-        authVerifier.verify(request.body.assertion)
-            .then(function authenticateIfOkay(verificationResult) {
-                if (verificationResult.status === 'okay') {
-                    var email = verificationResult.email;
-                    return User.authenticate(email).then(function (authData) {
-                        response.json(authData);
-                    });
-                } else {
-                    response.status(401).send(verificationResult.status);
+        authVerifier
+            .verify(request.body.assertion)
+            .then(function checkStatus(verificationResult) {
+                if (verificationResult.status !== 'okay') {
+                    HttpError.throw(401, verificationResult.status);
                 }
+                return verificationResult.email;
             })
-            .catch(function (error) {
-                console.log(error);
-                response.status(500).send(error);
-            });
+            .then(function authenticate(email) {
+                return User.authenticate(email);
+            })
+            .then(function sendResponse(authData) {
+                response.json(authData);
+            })
+            .catch(HttpError.handle(response));
     });
 
     router.get('/me', ensureAuthenticated, function (req, res) {
@@ -43,6 +44,7 @@ routes.publish = function (router) {
         //});
     });
 
-};
+}
+;
 
 module.exports = routes;

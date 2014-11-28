@@ -14,9 +14,10 @@ authMiddleware.ensureAuthenticated = function (req, res, next) {
         var payload = jwt.decode(token, config.TOKEN_SECRET);
         if (payload.exp <= moment().unix()) {
             return res.status(401).send({message: 'Token has expired'});
+        } else {
+            req.user = payload.user;
+            next();
         }
-        req.user = payload.user;
-        next();
     } catch (error) {
         return res.status(401).send({message: error.message});
     }
