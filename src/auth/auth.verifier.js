@@ -1,5 +1,7 @@
 var http = require('q-io/http');
 
+var config = require('../../config/config');
+
 var authVerifier = {};
 
 authVerifier.verify = function (assertion) {
@@ -9,7 +11,7 @@ authVerifier.verify = function (assertion) {
         body: [
             JSON.stringify({
                 assertion: assertion,
-                audience: 'http://localhost:5000'
+                audience: config.clientUrl
             })
         ],
         headers: {
