@@ -41,7 +41,6 @@ userSchema.methods.authData = function () {
 
 userSchema.statics.authenticate = function (email) {
     return User.findByEmail(email).then(function (user) {
-        user.createJwtToken();
         if (user) {
             return user.authData();
         } else { // no existing user, create a new one and return it
