@@ -1,7 +1,7 @@
-var authVerifier = require('./auth.verifier'),
-    User = require('../model/user.model'),
+var authVerifier = require('./auth.persona'),
+    User = require('../user/user.model'),
     ensureAuthenticated = require('../auth/auth.middleware').ensureAuthenticated,
-    HttpError = require('../error/HttpError');
+    httpError = require('../error/error.http');
 
 var routes = {};
 
@@ -12,7 +12,7 @@ routes.publish = function (router) {
             .verify(request.body.assertion)
             .then(function checkStatus(verificationResult) {
                 if (verificationResult.status !== 'okay') {
-                    HttpError.throw(401, verificationResult.status);
+                    httpError.throw(401, verificationResult.status);
                 }
                 return verificationResult.email;
             })
@@ -22,14 +22,14 @@ routes.publish = function (router) {
             .then(function sendResponse(authData) {
                 response.json(authData);
             })
-            .catch(HttpError.handle(response));
+            .catch(httpError.handle(response));
     });
 
     router.get('/me', ensureAuthenticated, function (request, response) {
         User.findByIdQ(request.user._id)
             .then(function returnEmail(user) {
                 response.json(user);
-            }).catch(HttpError.handle(response));
+            }).catch(httpError.handle(response));
     });
 
     router.put('/me', ensureAuthenticated, function (request, response) {
@@ -38,7 +38,7 @@ routes.publish = function (router) {
         User.findByIdQ(request.user._id)
             .then(function checkUserExists(user) {
                 if (!user)
-                    HttpError.throw(500, 'Logged user not saved');
+                    httpError.throw(500, 'Logged user not saved');
                 return user;
             })
             // TODO Check is student ?
@@ -52,7 +52,7 @@ routes.publish = function (router) {
             .then(function sendResponse() {
                 response.send('OK');
             })
-            .catch(HttpError.handle(response));
+            .catch(httpError.handle(response));
     });
 
 };

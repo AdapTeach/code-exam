@@ -1,5 +1,5 @@
-var Session = require('../model/session.model'),
-    HttpError = require('../error/HttpError');
+var Session = require('./session.model'),
+    httpError = require('../error/error.http');
 
 var sessionMiddleware = {};
 
@@ -12,13 +12,13 @@ sessionMiddleware.ensureExists = function (request, response, next) {
             .findByIdQ(sessionId)
             .then(function checkSessionExists(session) {
                 if (!session) {
-                    HttpError.throw(404, 'No session found for ID : ' + sessionId);
+                    httpError.throw(404, 'No session found for ID : ' + sessionId);
                 } else {
                     request.session = session;
                     next();
                 }
             })
-            .catch(HttpError.handle(response));
+            .catch(httpError.handle(response));
     }
 };
 

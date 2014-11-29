@@ -1,12 +1,12 @@
-var HttpError = {};
+var httpError = {};
 
-HttpError.throw = function (statusCode, message) {
+httpError.throw = function (statusCode, message) {
     var error = new Error(message);
     error.status = statusCode;
     throw error;
 };
 
-HttpError.handle = function (response) {
+httpError.handle = function (response) {
     return function (error) {
         if (error.name === 'CastError') {
             response.status(400);
@@ -20,4 +20,4 @@ HttpError.handle = function (response) {
     };
 };
 
-module.exports = HttpError;
+module.exports = httpError;
