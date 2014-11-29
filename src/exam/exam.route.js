@@ -7,8 +7,13 @@ var Session = require('../model/session.model'),
     Submission = require('../model/submission.model'),
     examData = require('./exam.data'),
     Assessments = require('./Assessments'),
-    ensureAuthenticated = require('../auth/auth.middleware').ensureAuthenticated,
     HttpError = require('../error/HttpError');
+
+var ensureAuthenticated = require('../auth/auth.middleware').ensureAuthenticated;
+
+var sessionMiddleware = require('./session.middleware');
+var ensureSessionExists = sessionMiddleware.ensureExists;
+var ensureSessionIsRunning = sessionMiddleware.ensureIsRunning;
 
 var routes = {};
 
@@ -55,28 +60,24 @@ routes.publish = function (router) {
     //.catch(HttpError.handle(response));
     //});
 
-    router.post('/session/:sessionId/start', ensureAuthenticated, function (request, response) {
-        var sessionId = request.params.sessionId;
-        Session
-            .findByIdQ(sessionId)
-            .then(function (session) {
-                if (!session) {
-                    HttpError.throw(404, 'No session found for ID : ' + sessionId);
-                } else if (session.started) {
-                    response.send('Session has already started');
-                } else {
-                    session.started = true;
-                    session.saveQ().then(function (savedSession) {
-                        console.log('Session started : ' + savedSession.id);
-                        response.send('OK');
-                    });
-                }
-            })
-            .catch(HttpError.handle(response));
+    router.post('/session/:sessionId/start', ensureAuthenticated, ensureSessionExists, function (request, response) {
+        var session = request.session;
+        if (session.started) {
+            response.send('Session has already started');
+        } else {
+            session.started = true;
+            session
+                .saveQ()
+                .then(function (savedSession) {
+                    console.log('Session started : ' + savedSession.id);
+                    response.send('OK');
+                })
+                .catch(HttpError.handle(response));
+        }
     });
 
-    router.post('/session/:sessionId/:assessmentId', ensureAuthenticated, function (request, response) {
-        var sessionId = request.params.sessionId;
+    router.post('/session/:sessionId/:assessmentId', ensureAuthenticated, ensureSessionExists, ensureSessionIsRunning, function (request, response) {
+        var session = request.session;
         var studentId = request.user._id;
         var assessmentId = request.params.assessmentId;
         var submission = request.body;
@@ -93,15 +94,8 @@ routes.publish = function (router) {
                     return;
                 }
             })
-            .then(function getSession() {
-                return Session.findByIdQ(sessionId);
-            })
-            .then(function getAssessmentResult(session) {
-                if (session.started) {
-                    return Assessments.assess(assessmentId, submission);
-                } else {
-                    HttpError.throw(403, 'The session has not started yet');
-                }
+            .then(function getAssessmentResult() {
+                return Assessments.assess(assessmentId, submission);
             })
             .then(function checkSubmittedCodeCompilesWithoutErrors(submissionResult) {
                 if (submissionResult.compilationErrors.length > 0) {
@@ -111,7 +105,7 @@ routes.publish = function (router) {
             })
             .then(function saveSubmissionResult(submissionResult) {
                 return new Submission({
-                    sessionId: sessionId,
+                    sessionId: session.id,
                     studentId: studentId,
                     assessmentId: assessmentId,
                     compilationUnits: submission.compilationUnits,
@@ -126,28 +120,25 @@ routes.publish = function (router) {
             .catch(HttpError.handle(response));
     });
 
-    router.get('/session/:sessionId/:assessmentId', ensureAuthenticated, function (request, response) {
-            var sessionId = request.params.sessionId;
-            var assessmentId = request.params.assessmentId;
-            var studentId = request.user._id;
-            Q.all([
-                Assessments.get(assessmentId),
-                Submission.findLatest(studentId, sessionId, assessmentId)
-            ])
-                .then(function sendResponse(results) {
-                    var assessment = results[0];
-                    var latestSubmission = results[1];
-                    response.json({
-                        assessment: assessment,
-                        latestSubmission: latestSubmission
-                    });
-                })
-                .catch(HttpError.handle(response));
-        }
-    )
-    ;
+    router.get('/session/:sessionId/:assessmentId', ensureAuthenticated, ensureSessionExists, ensureSessionIsRunning, function (request, response) {
+        var sessionId = request.params.sessionId;
+        var assessmentId = request.params.assessmentId;
+        var studentId = request.user._id;
+        Q.all([
+            Assessments.get(assessmentId),
+            Submission.findLatest(studentId, sessionId, assessmentId)
+        ])
+            .then(function sendResponse(results) {
+                var assessment = results[0];
+                var latestSubmission = results[1];
+                response.json({
+                    assessment: assessment,
+                    latestSubmission: latestSubmission
+                });
+            })
+            .catch(HttpError.handle(response));
+    });
 
-}
-;
+};
 
 module.exports = routes;
