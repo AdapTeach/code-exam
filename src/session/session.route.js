@@ -7,6 +7,7 @@ var ensureAuthenticated = require('../auth/auth.middleware').ensureAuthenticated
 var sessionMiddleware = require('../session/session.middleware');
 var ensureSessionExists = sessionMiddleware.ensureExists;
 var ensureSessionIsRunning = sessionMiddleware.ensureIsRunning;
+var ensureLoggedUserIsSessionCreator = sessionMiddleware.ensureLoggedUserIsCreator;
 
 var routes = {};
 
@@ -15,12 +16,14 @@ routes.publish = function (router) {
     // CREATE
     router.post('/session', ensureAuthenticated, function (request, response) {
         var sessionName = request.body.name;
+        var creatorId = request.user._id;
         var examId = request.body.examId;
         examData
             .get(examId)
             .then(function saveSession(exam) {
                 return new Session({
                     name: sessionName,
+                    creator: creatorId,
                     assessments: exam.assessments,
                     students: []
                 }).saveQ();
@@ -33,12 +36,12 @@ routes.publish = function (router) {
     });
 
     // START
-    router.post('/session/:sessionId/start', ensureAuthenticated, ensureSessionExists, function (request, response) {
+    router.post('/session/:sessionId/start', ensureAuthenticated, ensureSessionExists, ensureLoggedUserIsSessionCreator, function (request, response) {
         var session = request.session;
         if (session.started) {
             response.send('Session has already started');
         } else {
-            session.started = true;
+            session.start();
             session
                 .saveQ()
                 .then(function (savedSession) {
@@ -51,13 +54,27 @@ routes.publish = function (router) {
     });
 
     // CLOSE
-    router.post('/session/:sessionId/close', ensureAuthenticated, ensureSessionExists, ensureSessionIsRunning, function (request, response) {
+    router.post('/session/:sessionId/close', ensureAuthenticated, ensureSessionExists, ensureSessionIsRunning, ensureLoggedUserIsSessionCreator, function (request, response) {
         var session = request.session;
-        session.closed = true;
+        session.close();
         session
             .saveQ()
             .then(function (savedSession) {
                 var message = 'Session closed : ' + savedSession.id;
+                console.log(message);
+                response.send(message);
+            })
+            .catch(httpError.handle(response));
+    });
+
+    // REOPEN
+    router.post('/session/:sessionId/reopen', ensureAuthenticated, ensureSessionExists, ensureLoggedUserIsSessionCreator, function (request, response) {
+        var session = request.session;
+        session.reopen();
+        session
+            .saveQ()
+            .then(function (savedSession) {
+                var message = 'Session reopened : ' + savedSession.id;
                 console.log(message);
                 response.send(message);
             })
