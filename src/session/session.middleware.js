@@ -1,3 +1,5 @@
+var _ = require('lodash');
+
 var Session = require('./session.model'),
     httpError = require('../error/error.http');
 
@@ -42,6 +44,20 @@ sessionMiddleware.ensureLoggedUserIsCreator = function (request, response, next)
     var creatorId = request.session.creator.toString();
     if (creatorId !== loggedUserId) {
         response.status(403).send({message: 'Operation restricted to session creator'});
+    } else {
+        next();
+    }
+};
+
+/**
+ * Depends on session.middleware.ensureIsRunning
+ * Requires request.params.assessmentId
+ */
+sessionMiddleware.ensureHasAssessment = function (request, response, next) {
+    var session = request.session;
+    var assessmentId = request.params.assessmentId;
+    if (!_.contains(session.assessments, assessmentId)) {
+        response.status(409).send({message: 'Assessment is not part of session'});
     } else {
         next();
     }

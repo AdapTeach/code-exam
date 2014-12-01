@@ -7,14 +7,16 @@ var Submission = require('../submission/submission.model'),
 
 var ensureAuthenticated = require('../auth/auth.middleware').ensureAuthenticated;
 
-var sessionMiddleware = require('../session/session.middleware');
-var ensureSessionExists = sessionMiddleware.ensureExists;
-var ensureSessionIsRunning = sessionMiddleware.ensureIsRunning;
+var sessionMiddleware = require('../session/session.middleware'),
+    ensureSessionExists = sessionMiddleware.ensureExists,
+    ensureSessionIsRunning = sessionMiddleware.ensureIsRunning,
+    ensureSessionHasAssessment = sessionMiddleware.ensureHasAssessment;
 
 var routes = {};
 
 routes.publish = function (router) {
 
+    // TODO add ensureSessionHasAssessment middleware
     // SUBMIT
     router.post('/session/:sessionId/:assessmentId', ensureAuthenticated, ensureSessionExists, ensureSessionIsRunning, function (request, response) {
         var session = request.session;
@@ -25,7 +27,7 @@ routes.publish = function (router) {
             .findLatest(studentId)
             .then(function checkTimeIntervalBetweenSubmissions(latestSubmission) {
                 if (!latestSubmission) {
-                    return;
+                    return; // TODO Save default submission to enforce minimum time between submissions
                 }
                 var canSubmitAgain = moment(latestSubmission.creationDate).add(1, 'minute');
                 if (canSubmitAgain.isAfter(Date.now())) {
@@ -37,7 +39,7 @@ routes.publish = function (router) {
             .then(function getAssessmentResult() {
                 return assessments.assess(assessmentId, submission);
             })
-            .then(function checkSubmittedCodeCompilesWithoutErrors(submissionResult) {
+            .then(function ensureSubmittedCodeCompilesWithoutErrors(submissionResult) {
                 if (submissionResult.compilationErrors.length > 0) {
                     httpError.throw(400, 'Compilation Errors ! Submission was not saved');
                 }
