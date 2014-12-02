@@ -13,7 +13,8 @@ var userSchema = new Schema({
     },
     studentEmail: {
         type: String,
-        match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, "You should provide a valid email"]
+        match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, "You should provide a valid email"],
+        unique: true
     },
     firstname: {
         type: String
@@ -48,7 +49,7 @@ userSchema.statics.authenticate = function (email) {
         .findByEmail(email)
         .then(function (user) {
             if (!user) { // no existing user, create a new one and return it
-                return new User({email: email}).saveQ();
+                return new User({email: email, studentEmail: email}).saveQ();
             } else {
                 return user;
             }
