@@ -29,7 +29,19 @@ sessionMiddleware.ensureExists = function (request, response, next) {
 sessionMiddleware.ensureIsRunning = function (request, response, next) {
     var session = request.session;
     if (!session.isRunning()) {
-        response.status(409).send({message: 'Session is not running'});
+        response.status(403).send({message: 'Operation restricted to running sessions'});
+    } else {
+        next();
+    }
+};
+
+/**
+ * Depends on session.middleware.ensureExists
+ */
+sessionMiddleware.ensureIsClosed = function (request, response, next) {
+    var session = request.session;
+    if (!session.closed) {
+        response.status(403).send({message: 'Operation restricted to closed sessions'});
     } else {
         next();
     }
