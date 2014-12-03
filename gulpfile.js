@@ -4,24 +4,18 @@ var gulp = require('gulp'),
 
 var pathToSrc = ['config/**/*.js', 'src/**/*.js', 'gulpfile.js'];
 
-gulp.task('default', ['dev','lint'], function () {
+gulp.task('default', ['dev', 'lint'], function () {
 });
 
 gulp.task('dev', function () {
-    nodemon({ script: 'server.js' })
+    nodemon({script: 'server.js'})
         .on('change', ['lint']);
 });
 
 gulp.task('lint', function () {
     gulp.src(pathToSrc)
         .pipe(jshint({
-            strict:false
+            strict: false
         }))
-        .pipe(jshint.reporter('default'));
+        .pipe(jshint.reporter('jshint-stylish'));
 });
-
-/////////////////////////////////////
-/////////////// PROD ///////////////
-///////////////////////////////////
-
-// TODO
