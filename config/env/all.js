@@ -1,6 +1,6 @@
 module.exports = {
     app: {
-        title: 'Code Assesser',
+        title: 'Code Exam',
         description: '',
         keywords: ''
     }
