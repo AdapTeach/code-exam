@@ -19,12 +19,12 @@ routes.publish = function (router) {
     // TODO add ensureSessionHasAssessment middleware
     // SUBMIT
     router.post('/session/:sessionId/:assessmentId', ensureAuthenticated, ensureSessionExists, ensureSessionIsRunning, function (request, response) {
-        var session = request.session;
+        var sessionId = request.session.id;
         var studentId = request.user._id;
         var assessmentId = request.params.assessmentId;
         var submission = request.body;
         Submission
-            .findLatest(studentId)
+            .findLatest(studentId, sessionId, assessmentId)
             .then(function checkTimeIntervalBetweenSubmissions(latestSubmission) {
                 if (!latestSubmission) {
                     return; // TODO Save default submission to enforce minimum time between submissions
@@ -47,7 +47,7 @@ routes.publish = function (router) {
             })
             .then(function saveSubmissionResult(submissionResult) {
                 return new Submission({
-                    sessionId: session.id,
+                    sessionId: sessionId,
                     studentId: studentId,
                     assessmentId: assessmentId,
                     compilationUnits: submission.compilationUnits,
