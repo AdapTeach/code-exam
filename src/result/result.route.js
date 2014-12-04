@@ -40,7 +40,8 @@ routes.publish = function (router) {
                     }
                     result.details.push({
                         assessmentId: submissionResult.assessmentId,
-                        pass: submissionResult.result.pass
+                        pass: submissionResult.result.pass,
+                        submission: submissionResult.compilationUnits
                     });
                 });
                 response.send(result);
