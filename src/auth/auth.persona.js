@@ -6,7 +6,7 @@ var authVerifier = {};
 
 authVerifier.verify = function (assertion) {
     var options = {
-        url: 'https://verifier.login.persona.org/verify',
+        url: config.authUrl + '/login',
         method: 'POST',
         body: [
             JSON.stringify({
@@ -23,6 +23,21 @@ authVerifier.verify = function (assertion) {
             return verificationResult.body.read().then(function (body) {
                 return JSON.parse(body);
             });
+        });
+};
+
+authVerifier.decodeToken = function (token) {
+    var options = {
+        url: config.authUrl + '/me',
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        }
+    };
+    return http.request(options)
+        .then(function (result) {
+            return result.body.read();
         });
 };
 
