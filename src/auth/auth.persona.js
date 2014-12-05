@@ -20,9 +20,10 @@ authVerifier.verify = function (assertion) {
     };
     return http.request(options)
         .then(function (verificationResult) {
-            return verificationResult.body.read().then(function (body) {
-                return JSON.parse(body);
-            });
+            return verificationResult.body.read();
+        })
+        .then(function (authData) {
+            return JSON.parse(authData);
         });
 };
 

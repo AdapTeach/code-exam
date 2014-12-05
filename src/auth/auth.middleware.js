@@ -11,7 +11,7 @@ authMiddleware.ensureAuthenticated = function (request, response, next) {
     verifier
         .decodeToken(token)
         .then(function (body) {
-            req.user = JSON.parse(body);
+            request.user = JSON.parse(body);
             next();
         })
         .catch(httpError.handle(response));
