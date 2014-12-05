@@ -2,6 +2,8 @@ var http = require('q-io/http');
 
 var config = require('../../config/config');
 
+var httpError = require('../error/error.http');
+
 var authVerifier = {};
 
 authVerifier.verify = function (assertion) {
@@ -37,8 +39,15 @@ authVerifier.decodeToken = function (token) {
         }
     };
     return http.request(options)
+        .then(function checkStatus(result) {
+            if (result.status !== 200) httpError.throw(result.status, 'Error decoding token');
+            return result;
+        })
         .then(function (result) {
             return result.body.read();
+        })
+        .then(function (body) {
+            return JSON.parse(body);
         });
 };
 
