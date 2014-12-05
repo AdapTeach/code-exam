@@ -1,7 +1,5 @@
-var jwt = require('jwt-simple');
-var moment = require('moment');
-
-var config = require('../../config/config');
+var verifier = require('./auth.persona'),
+    httpError = require('../error/error.http');
 
 var authMiddleware = {};
 
@@ -10,17 +8,13 @@ authMiddleware.ensureAuthenticated = function (request, response, next) {
         return response.status(401).send({message: 'Please make sure your request has an Authorization header'});
     }
     var token = request.headers.authorization.split(' ')[1];
-    try {
-        var payload = jwt.decode(token, config.TOKEN_SECRET);
-        if (payload.exp <= moment().unix()) {
-            return response.status(401).send({message: 'Token has expired'});
-        } else {
-            request.user = payload.user;
+    verifier
+        .decodeToken(token)
+        .then(function (body) {
+            req.user = JSON.parse(body);
             next();
-        }
-    } catch (error) {
-        return response.status(401).send({message: error.message});
-    }
+        })
+        .catch(httpError.handle(response));
 };
 
 module.exports = authMiddleware;

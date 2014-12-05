@@ -10,17 +10,8 @@ routes.publish = function (router) {
     router.post('/login', function (request, response) {
         authVerifier
             .verify(request.body.assertion)
-            .then(function checkStatus(verificationResult) {
-                if (verificationResult.status !== 'okay') {
-                    httpError.throw(401, verificationResult.status);
-                }
-                return verificationResult.email;
-            })
-            .then(function authenticate(email) {
-                return User.authenticate(email);
-            })
-            .then(function sendResponse(authData) {
-                response.json(authData);
+            .then(function sendUser(user) {
+                response.json(user);
             })
             .catch(httpError.handle(response));
     });
