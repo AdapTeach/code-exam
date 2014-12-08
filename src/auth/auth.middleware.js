@@ -10,8 +10,8 @@ authMiddleware.ensureAuthenticated = function (request, response, next) {
     var token = request.headers.authorization.split(' ')[1];
     verifier
         .decodeToken(token)
-        .then(function (user) {
-            request.user = user;
+        .then(function (learnerProfile) {
+            request.learnerProfile = learnerProfile;
             next();
         })
         .catch(httpError.handle(response));

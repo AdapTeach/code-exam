@@ -5,26 +5,15 @@ var mongoose = require('mongoose-q')(require('mongoose')),
     moment = require('moment');
 
 var userSchema = new Schema({
-    email: {
+    learnerProfile: {
         type: String,
-        required: 'you should provide an email',
-        match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, "You should provide a valid email"],
+        required: true,
         unique: true
     },
     studentEmail: {
         type: String,
         match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, "You should provide a valid email"],
         unique: true
-    },
-    firstname: {
-        type: String
-    },
-    lastname: {
-        type: String
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
     }
 });
 
@@ -46,21 +35,23 @@ userSchema.methods.authData = function () {
 
 userSchema.statics.authenticate = function (email) {
     return User
-        .findByEmail(email)
-        .then(function (user) {
-            if (!user) { // no existing user, create a new one and return it
-                return new User({email: email, studentEmail: email}).saveQ();
-            } else {
-                return user;
-            }
-        })
+        .findByLearnerProfileOrCreate(email)
         .then(function (user) {
             return user.authData();
         });
 };
 
-userSchema.statics.findByEmail = function (email) {
-    return User.findOne({email: email}).execQ();
+userSchema.statics.findByLearnerProfileOrCreate = function (learnerProfile) {
+    return User
+        .findOne({learnerProfile: learnerProfile._id})
+        .execQ()
+        .then(function (user) {
+            if (!user) { // no existing user, create a new one and return it
+                return new User({learnerProfile: learnerProfile._id, studentEmail: learnerProfile.email}).saveQ();
+            } else {
+                return user;
+            }
+        });
 };
 
 var User = mongoose.model('User', userSchema);

@@ -4,9 +4,9 @@ var config = require('../../config/config');
 
 var httpError = require('../error/error.http');
 
-var authVerifier = {};
+var persona = {};
 
-authVerifier.verify = function (assertion) {
+persona.verify = function (assertion) {
     var options = {
         url: config.authUrl + '/login',
         method: 'POST',
@@ -29,7 +29,7 @@ authVerifier.verify = function (assertion) {
         });
 };
 
-authVerifier.decodeToken = function (token) {
+persona.decodeToken = function (token) {
     var options = {
         url: config.authUrl + '/me',
         method: 'GET',
@@ -51,4 +51,4 @@ authVerifier.decodeToken = function (token) {
         });
 };
 
-module.exports = authVerifier;
+module.exports = persona;

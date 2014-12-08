@@ -17,7 +17,7 @@ var submissionSchema = new Schema({
         type: String,
         required: true
     },
-    compilationUnits: [
+    submittedCompilationUnits: [
         {
             name: String,
             code: String

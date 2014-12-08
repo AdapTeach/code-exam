@@ -1,6 +1,6 @@
 var http = require('q-io/http');
 
-//var BASE_URL = 'http://localhost:5010/assess';
+//var BASE_URL = 'http://localhost:5010/assess/';
 var BASE_URL = 'http://codeassesser-adapteach.rhcloud.com/assess/';
 
 var Assessments = {};
