@@ -9,8 +9,7 @@ var submissionSchema = new Schema({
         required: true
     },
     studentId: {
-        type: Schema.ObjectId,
-        ref: 'User',
+        type: String,
         required: true
     },
     assessmentId: {
@@ -25,7 +24,6 @@ var submissionSchema = new Schema({
     ],
     result: {
         pass: Boolean,
-        compilationError: [String],
         failedTestMessages: [String]
     }
 });

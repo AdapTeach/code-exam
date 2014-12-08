@@ -38,6 +38,18 @@ sessionMiddleware.ensureIsRunning = function (request, response, next) {
 /**
  * Depends on session.middleware.ensureExists
  */
+sessionMiddleware.ensureIsStarted = function (request, response, next) {
+    var session = request.session;
+    if (!session.started) {
+        response.status(403).send({message: 'Please wait for session to start'});
+    } else {
+        next();
+    }
+};
+
+/**
+ * Depends on session.middleware.ensureExists
+ */
 sessionMiddleware.ensureIsClosed = function (request, response, next) {
     var session = request.session;
     if (!session.closed) {
@@ -52,7 +64,7 @@ sessionMiddleware.ensureIsClosed = function (request, response, next) {
  * Depends on session.middleware.ensureExists
  */
 sessionMiddleware.ensureLoggedUserIsCreator = function (request, response, next) {
-    var loggedUserId = request.user._id;
+    var loggedUserId = request.learnerProfile._id;
     var creatorId = request.session.creator.toString();
     if (creatorId !== loggedUserId) {
         response.status(403).send({message: 'Operation restricted to session creator'});

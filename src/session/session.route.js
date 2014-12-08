@@ -16,7 +16,7 @@ routes.publish = function (router) {
     // CREATE
     router.post('/session', ensureAuthenticated, function (request, response) {
         var sessionName = request.body.name;
-        var creatorId = request.user._id;
+        var creatorId = request.learnerProfile._id;
         var examId = request.body.examId;
         examData
             .get(examId)

@@ -18,7 +18,7 @@ routes.publish = function (router) {
     // LOAD RESULTS
     router.get('/session/:sessionId', ensureAuthenticated, ensureSessionExists, ensureSessionIsClosed, function (request, response) {
         var sessionId = request.session._id;
-        var studentId = request.user._id;
+        var studentId = request.learnerProfile._id;
         var queries = [];
         _.forEach(request.session.assessments, function (assessmentId) {
             queries.push(Submission.findLatest(studentId, sessionId, assessmentId));
@@ -41,7 +41,7 @@ routes.publish = function (router) {
                     result.details.push({
                         assessmentId: submissionResult.assessmentId,
                         pass: submissionResult.result.pass,
-                        submission: submissionResult.compilationUnits
+                        submission: submissionResult.submittedCompilationUnits
                     });
                 });
                 response.send(result);

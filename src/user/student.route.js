@@ -11,7 +11,7 @@ routes.publish = function (router) {
     // REGISTER
     // TODO Make sure submitting students are registered for a session
     //router.post('/session/:sessionId/registerStudent', ensureAuthenticated, function (request, response) {
-    //    var studentId = request.user._id;
+    //    var studentId = request.learnerProfile._id;
     //    var sessionId = request.params.sessionId;
     //    Session
     //        .findByIdQ(sessionId)

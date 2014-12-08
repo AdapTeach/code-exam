@@ -3,7 +3,7 @@ var mongoose = require('mongoose-q')(require('mongoose')),
 
 var sessionSchema = new Schema({
     name: {type: String, required: true},
-    creator: {type: Schema.ObjectId, ref: 'User'},
+    creator: {type: String},
     assessments: {type: [String], required: true},
     students: {type: [Schema.ObjectId], ref: 'User'},
     started: {type: Boolean, required: true, default: false},
