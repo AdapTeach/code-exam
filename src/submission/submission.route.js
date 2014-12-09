@@ -73,7 +73,7 @@ routes.publish = function (router) {
             .then(function sendResponse(results) {
                 var assessment = results[0];
                 var latestSubmission = results[1];
-                latestSubmission.result = 'hidden'; // TODO Hide only if session is running
+                if (latestSubmission) latestSubmission.result = 'hidden'; // TODO Hide only if session is running
                 response.json({
                     assessment: assessment,
                     latestSubmission: latestSubmission
