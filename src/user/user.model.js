@@ -4,6 +4,8 @@ var mongoose = require('mongoose-q')(require('mongoose')),
     jwt = require('jwt-simple'),
     moment = require('moment');
 
+var Submission = require('../submission/submission.model');
+
 var userSchema = new Schema({
     learnerProfile: {
         type: String,
@@ -51,6 +53,19 @@ userSchema.statics.findByLearnerProfileOrCreate = function (learnerProfile) {
             } else {
                 return user;
             }
+        });
+};
+
+/**
+ * @returns Array of users which have submitted solutions for this session
+ */
+userSchema.statics.findBySessionId = function (sessionId) {
+    return Submission
+        .find({sessionId: sessionId})
+        .distinct('studentId')
+        .execQ()
+        .then(function (studentIds) {
+            return User.find().where('learnerProfile').in(studentIds).execQ();
         });
 };
 
