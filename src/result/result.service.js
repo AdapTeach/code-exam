@@ -10,7 +10,7 @@ var ResultService = {};
 ResultService.retrieveForStudent = function (student, session) {
     var queries = [];
     _.forEach(session.assessments, function (assessmentId) {
-        queries.push(Submission.findLatest(student._id, session._id, assessmentId));
+        queries.push(Submission.findLatest(student.learnerProfile, session._id, assessmentId));
     });
     return Q.all(queries)
         .then(function (submissionResults) {

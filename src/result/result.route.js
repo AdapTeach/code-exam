@@ -21,9 +21,13 @@ routes.publish = function (router) {
     // LOAD RESULTS FOR SINGLE USER
     router.get('/session/:sessionId', ensureAuthenticated, ensureSessionExists, ensureSessionIsClosed, function (request, response) {
         var session = request.session;
-        Result
-            .retrieveForStudent(request.learnerProfile, session)
-            .then(function (result) {
+        var learnerProfile = request.learnerProfile;
+        User
+            .findByLearnerProfileOrCreate(learnerProfile)
+            .then(function retrieveResultFor(student) {
+                return Result.retrieveForStudent(student, session);
+            })
+            .then(function respondWith(result) {
                 response.json(result);
             })
             .catch(httpError.handle(response));
